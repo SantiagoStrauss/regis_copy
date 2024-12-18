@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from contextlib import contextmanager
 import traceback
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
+
 
 
 ####funciona WORKERS
@@ -39,9 +39,12 @@ class RegistraduriaScraper:
 
     def __init__(self, headless: bool = True):
         self.logger = self._setup_logger()
+        self.verify_chrome_binary()
         self.options = self._setup_chrome_options(headless)
-        chromedriver_path = '/opt/render/project/chrome-linux/chromedriver'
-        self.service = Service(executable_path=chromedriver_path)
+        # Remove version specification to automatically get the matching driver
+        self.service = ChromeService(
+            ChromeDriverManager(driver_version="131.0.6778.108").install()
+        )
         
     @staticmethod
     def _setup_logger() -> logging.Logger:
