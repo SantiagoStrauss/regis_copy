@@ -35,7 +35,8 @@ class RegistraduriaScraper:
     def __init__(self, headless: bool = False):
         self.logger = self._setup_logger()
         self.options = self._setup_chrome_options(headless)
-        self.service = Service(ChromeDriverManager().install())
+        chromedriver_path = '/root/bin/chromedriver'
+        self.service = Service(executable_path=chromedriver_path)
 
     @staticmethod
     def _setup_logger() -> logging.Logger:
@@ -52,21 +53,29 @@ class RegistraduriaScraper:
     @staticmethod
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
+        
+        # Set Chrome binary location
+        chrome_binary = '/opt/render/project/chrome-linux/opt/google/chrome/chrome'
+        options.binary_location = chrome_binary
+        
+        # Add debug logging
+        print(f"Chrome binary location: {chrome_binary}")
+        
         if headless:
-            options.add_argument('--headless=new')  # Usa el modo headless más reciente
+            options.add_argument('--headless=new')
+        
         options.add_argument('--window-size=1920,1080')
         options.add_argument('--disable-gpu')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--disable-extensions')
         options.add_argument('--disable-blink-features=AutomationControlled')
-        options.add_argument('--disable-webgl') # Deshabilita WebGL
+        options.add_argument('--disable-webgl')
         options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
         options.add_experimental_option('useAutomationExtension', False)
-        # Opcional: Establecer un User-Agent real
         options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                             'AppleWebKit/537.36 (KHTML, like Gecko) '
-                             'Chrome/98.0.4758.102 Safari/537.36')
+                            'AppleWebKit/537.36 (KHTML, like Gecko) '
+                            'Chrome/98.0.4758.102 Safari/537.36')
         return options
 
     @contextmanager
