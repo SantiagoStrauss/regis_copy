@@ -14,9 +14,13 @@ CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LAT
 wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
 unzip chromedriver_linux64.zip
 chmod +x chromedriver
-mv chromedriver /opt/render/project/chrome-linux/chromedriver || echo "Could not move chromedriver to /opt/render/project/chrome-linux/"
+mv chromedriver /opt/render/project/chrome-linux/chromedriver || { echo "Could not move chromedriver to /opt/render/project/chrome-linux/"; exit 1; }
 
-# Remove adding to HOME/bin and PATH
+# Verify chromedriver exists and is executable
+if [ ! -f /opt/render/project/chrome-linux/chromedriver ]; then
+    echo "chromedriver not found at /opt/render/project/chrome-linux/chromedriver"
+    exit 1
+fi
 
 # Create symlink for Chrome binary
 CHROME_PATH="/opt/render/project/chrome-linux/opt/google/chrome/chrome"
