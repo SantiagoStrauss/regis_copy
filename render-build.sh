@@ -12,13 +12,13 @@ mkdir -p "$CHROME_LINUX_DIR"
 
 # Download and extract Chrome
 wget -q "https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.108/linux64/chrome-linux64.zip"
-unzip chrome-linux64.zip -d "$CHROME_DIR"  # Changed from "$CHROME_LINUX_DIR" to "$CHROME_DIR"
+unzip chrome-linux64.zip -d "/opt/render/project/.chrome"
 
 # Correct the Chrome binary path
 CHROME_BINARY_PATH="$CHROME_DIR/chrome/chrome"  # Updated path to match expected location
 
 # Set permissions
-chmod +x "$CHROME_BINARY_PATH"
+chmod +x "/opt/render/project/.chrome/chrome-linux64/chrome"
 
 # Cleanup
 rm -f chrome-linux64.zip
