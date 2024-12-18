@@ -51,7 +51,7 @@ class RegistraduriaScraper:
         options = webdriver.ChromeOptions()
         if headless:
             options.add_argument('--headless=new')
-        options.binary_location = '/usr/bin/google-chrome'  # Ruta al binario de Chrome en Render
+        options.binary_location = '/usr/bin/chromium-browser'  # Ruta al binario de Chromium en Render
         options.add_argument('--window-size=1920,1080')
         options.add_argument('--disable-gpu')
         options.add_argument('--no-sandbox')
