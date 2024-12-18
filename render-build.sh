@@ -2,7 +2,7 @@
 
 # Create Chrome directory
 mkdir -p /opt/render/project/chrome-linux
-############11111111111111
+
 # Download and install Chrome
 echo "Installing Google Chrome"
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -14,11 +14,9 @@ CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LAT
 wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
 unzip chromedriver_linux64.zip
 chmod +x chromedriver
-mkdir -p $HOME/bin
-mv chromedriver $HOME/bin/chromedriver || echo "Could not move chromedriver to $HOME/bin"
+mv chromedriver /opt/render/project/chrome-linux/chromedriver || echo "Could not move chromedriver to /opt/render/project/chrome-linux/"
 
-# Add ChromeDriver to PATH
-export PATH=$HOME/bin:$PATH
+# Remove adding to HOME/bin and PATH
 
 # Create symlink for Chrome binary
 CHROME_PATH="/opt/render/project/chrome-linux/opt/google/chrome/chrome"
@@ -31,4 +29,4 @@ rm google-chrome-stable_current_amd64.deb chromedriver_linux64.zip
 echo "Chrome version:"
 $CHROME_PATH --version || echo "Chrome not found"
 echo "ChromeDriver version:"
-chromedriver --version || echo "ChromeDriver not found"
+/opt/render/project/chrome-linux/chromedriver --version || echo "ChromeDriver not found"
