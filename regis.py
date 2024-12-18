@@ -45,6 +45,22 @@ class RegistraduriaScraper:
         self.service = ChromeService(
             ChromeDriverManager(driver_version="131.0.6778.108").install()
         )
+
+    def verify_chrome_binary(self) -> None:
+        global CHROME_BINARY_PATH  # Declare global variable before usage
+        if not os.path.isfile(CHROME_BINARY_PATH):
+            fallback_path = os.path.join(os.getcwd(), "chrome", "chrome.exe")
+            if os.path.isfile(fallback_path):
+                CHROME_BINARY_PATH = fallback_path
+            else:
+                self.logger.error(f"Chrome binary not found at {CHROME_BINARY_PATH}")
+                raise FileNotFoundError(f"Chrome binary not found at {CHROME_BINARY_PATH}")
+        
+        if not os.access(CHROME_BINARY_PATH, os.X_OK):
+            self.logger.error(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
+            raise PermissionError(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
+
+        
         
     @staticmethod
     def _setup_logger() -> logging.Logger:
