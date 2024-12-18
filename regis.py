@@ -31,7 +31,7 @@ class RegistraduriaData:
     estado: Optional[str] = None
 
 class RegistraduriaScraper:
-    URL = "https://consultaweb.registraduria.gov.co/censo/_censoResultado.php"
+    URL = "https://defunciones.registraduria.gov.co/"
     INPUT_XPATH = "//input[@name='nuip']"
     BUTTON_XPATH = "//button[@type='submit']"
 
