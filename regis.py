@@ -2,16 +2,15 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import (
     WebDriverException,
-    NoSuchElementException,
+    NoSuchElementException, 
     ElementClickInterceptedException,
     TimeoutException,
 )
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
-from typing import List, Optional
+from typing import Optional
 from dataclasses import dataclass
 from contextlib import contextmanager
 import traceback
@@ -20,24 +19,20 @@ import traceback
 class RegistraduriaData:
     nuip: str
     fecha_consulta: Optional[str] = None
-    documento: Optional[str] = None
+    documento: Optional[str] = None  
     estado: Optional[str] = None
-    # Agrega otros campos relevantes si es necesario
-    # Ejemplo:
-    # nombre: Optional[str] = None
-    # fecha_defuncion: Optional[str] = None
 
 class RegistraduriaScraper:
-    URL = 'https://defunciones.registraduria.gov.co/'
-    INPUT_XPATH = '//*[@id="nuip"]'
-    BUTTON_XPATH = '//*[@id="content"]/div/div/div/div/div[2]/form/div/button'
+    URL = "https://consultaweb.registraduria.gov.co/censo/_censoResultado.php"
+    INPUT_XPATH = "//input[@name='nuip']"
+    BUTTON_XPATH = "//button[@type='submit']"
 
-    def __init__(self, headless: bool = False):
+    def __init__(self, headless: bool = True):
         self.logger = self._setup_logger()
         self.options = self._setup_chrome_options(headless)
-        chromedriver_path = '/root/bin/chromedriver'
+        chromedriver_path = '/opt/render/project/chrome-linux/chromedriver'
         self.service = Service(executable_path=chromedriver_path)
-
+        
     @staticmethod
     def _setup_logger() -> logging.Logger:
         logger = logging.getLogger('registraduria_scraper')
@@ -50,27 +45,29 @@ class RegistraduriaScraper:
             logger.addHandler(handler)
         return logger
 
-    @staticmethod
+    @staticmethod 
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
         
-        # Set Chrome binary location
+        # Chrome binary location
         chrome_binary = '/opt/render/project/chrome-linux/opt/google/chrome/chrome'
         options.binary_location = chrome_binary
         
-        # Add debug logging
+        # Debug logging
         print(f"Chrome binary location: {chrome_binary}")
         
-        if headless:
-            options.add_argument('--headless=new')
-        
-        options.add_argument('--window-size=1920,1080')
-        options.add_argument('--disable-gpu')
+        # Required options
+        options.add_argument('--headless=new')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--window-size=1920,1080')
+        options.add_argument('--remote-debugging-port=9222')
         options.add_argument('--disable-extensions')
         options.add_argument('--disable-blink-features=AutomationControlled')
         options.add_argument('--disable-webgl')
+        
+        # Additional options
         options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
         options.add_experimental_option('useAutomationExtension', False)
         options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -98,85 +95,83 @@ class RegistraduriaScraper:
         try:
             with self._get_driver() as driver:
                 driver.get(self.URL)
-                self.logger.info(f"Navegando a {self.URL}")
-
+                self.logger.info(f"Navigating to {self.URL}")
+                
                 wait = WebDriverWait(driver, 30)
-
-                # Ingresar NUIP
+                
+                # Input NUIP
                 try:
                     input_field = wait.until(
                         EC.visibility_of_element_located((By.XPATH, self.INPUT_XPATH))
                     )
                     input_field.clear()
                     input_field.send_keys(nuip)
-                    self.logger.info(f"NUIP ingresado: {nuip}")
-
-                    # Clicar el botón de búsqueda
+                    self.logger.info(f"NUIP entered: {nuip}")
+                    
+                    # Click search button
                     search_button = driver.find_element(By.XPATH, self.BUTTON_XPATH)
                     search_button.click()
-                    self.logger.info("Botón de búsqueda clickeado.")
+                    self.logger.info("Search button clicked")
                 except TimeoutException:
-                    self.logger.error("Campo NUIP no encontrado dentro del tiempo de espera.")
+                    self.logger.error("NUIP field not found within timeout")
                     return None
                 except Exception as e:
-                    self.logger.error(f"Error al ingresar NUIP o clicar el botón: {e}")
+                    self.logger.error(f"Error entering NUIP or clicking button: {e}")
                     self.logger.error(traceback.format_exc())
                     return None
 
-                # Extraer y procesar los datos necesarios
+                # Extract data
                 try:
-                    # Esperar a que los resultados se carguen
-                    resultados_xpath = '//*[@id="content"]/div[2]/div/div/div/div'
-                    resultado_element = wait.until(
-                        EC.visibility_of_element_located((By.XPATH, resultados_xpath))
+                    results_xpath = '//*[@id="content"]/div[2]/div/div/div/div'
+                    result_element = wait.until(
+                        EC.visibility_of_element_located((By.XPATH, results_xpath))
                     )
-                    self.logger.info("Resultados encontrados.")
-
-                    # Extraer Fecha Consulta
+                    
+                    # Get consultation date
                     try:
-                        fecha_consulta = resultado_element.find_element(By.XPATH, './/h5[@class="card-title"]').text
-                        # Extraer solo la fecha
-                        fecha_consulta = fecha_consulta.replace('Fecha Consulta: ', '').strip()
-                        self.logger.info(f"Fecha Consulta: {fecha_consulta}")
+                        fecha_consulta = result_element.find_element(
+                            By.XPATH, './/h5[@class="card-title"]'
+                        ).text.replace('Fecha Consulta: ', '').strip()
                     except NoSuchElementException:
-                        self.logger.error("Elemento Fecha Consulta no encontrado.")
                         fecha_consulta = None
-
-                    # Extraer Número de Documento
+                        self.logger.error("Consultation date element not found")
+                    
+                    # Get document number
                     try:
-                        documento = resultado_element.find_element(By.XPATH, './/p[@class="lead"]/span/strong').text
-                        self.logger.info(f"Número de Documento: {documento}")
+                        documento = result_element.find_element(
+                            By.XPATH, './/p[@class="lead"]/span/strong'
+                        ).text
                     except NoSuchElementException:
-                        self.logger.error("Elemento Número de Documento no encontrado.")
                         documento = None
-
-                    # Extraer Estado
+                        self.logger.error("Document number element not found")
+                    
+                    # Get status
                     try:
-                        estado = resultado_element.find_elements(By.XPATH, './/p[@class="lead"]/span/strong')[1].text
-                        self.logger.info(f"Estado: {estado}")
+                        estado = result_element.find_elements(
+                            By.XPATH, './/p[@class="lead"]/span/strong'
+                        )[1].text
                     except (NoSuchElementException, IndexError):
-                        self.logger.error("Elemento Estado no encontrado.")
                         estado = None
+                        self.logger.error("Status element not found")
 
-                    # Crear instancia de RegistraduriaData con los datos extraídos
                     data = RegistraduriaData(
                         nuip=nuip,
                         fecha_consulta=fecha_consulta,
                         documento=documento,
                         estado=estado
                     )
-                    self.logger.info(f"Datos extraídos: {data}")
+                    self.logger.info(f"Data extracted: {data}")
                     return data
-
+                    
                 except TimeoutException:
-                    self.logger.error("Resultados no encontrados dentro del tiempo de espera.")
+                    self.logger.error("Results not found within timeout")
                     return None
                 except Exception as e:
-                    self.logger.error(f"Error al extraer datos: {e}")
+                    self.logger.error(f"Error extracting data: {e}")
                     self.logger.error(traceback.format_exc())
                     return None
-
+                    
         except Exception as e:
-            self.logger.error(f"Error durante el scraping: {e}")
+            self.logger.error(f"Error during scraping: {e}")
             self.logger.error(traceback.format_exc())
             return None
