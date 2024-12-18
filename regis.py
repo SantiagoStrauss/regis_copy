@@ -1,19 +1,27 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import (
     WebDriverException,
-    NoSuchElementException, 
+    NoSuchElementException,
     ElementClickInterceptedException,
     TimeoutException,
 )
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
-from typing import Optional
+import os
+from typing import List, Optional
 from dataclasses import dataclass
 from contextlib import contextmanager
 import traceback
+from webdriver_manager.chrome import ChromeDriverManager
+
+####funciona WORKERS
+# Constants for Chrome setup
+DEFAULT_CHROME_PATH = "/opt/render/project/.chrome/chrome-linux64/chrome-linux64/chrome"
+CHROME_BINARY_PATH = os.getenv('CHROME_BINARY', DEFAULT_CHROME_PATH)
 
 @dataclass
 class RegistraduriaData:
@@ -45,34 +53,34 @@ class RegistraduriaScraper:
             logger.addHandler(handler)
         return logger
 
-    @staticmethod 
+    @staticmethod
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
         
-        # Chrome binary location
-        chrome_binary = '/opt/render/project/chrome-linux/opt/google/chrome/chrome'
-        options.binary_location = chrome_binary
-        
-        # Debug logging
-        print(f"Chrome binary location: {chrome_binary}")
-        
-        # Required options
-        options.add_argument('--headless=new')
+        # Essential options for stability
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--window-size=1920,1080')
-        options.add_argument('--remote-debugging-port=9222')
-        options.add_argument('--disable-extensions')
-        options.add_argument('--disable-blink-features=AutomationControlled')
-        options.add_argument('--disable-webgl')
         
-        # Additional options
-        options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
-        options.add_experimental_option('useAutomationExtension', False)
-        options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                            'AppleWebKit/537.36 (KHTML, like Gecko) '
-                            'Chrome/98.0.4758.102 Safari/537.36')
+        if headless:
+            options.add_argument('--headless=new')
+        
+        # Chrome binary path
+        options.binary_location = CHROME_BINARY_PATH
+
+        # Performance options
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--no-sandbox') 
+        options.add_argument('--disable-software-rasterizer')
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        
+        # Custom user agent (optional)
+        options.add_argument(
+            'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/131.0.6778.108 Safari/537.36'
+        )
         return options
 
     @contextmanager
