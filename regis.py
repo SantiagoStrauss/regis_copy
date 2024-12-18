@@ -23,9 +23,6 @@ class RegistraduriaData:
     documento: Optional[str] = None
     estado: Optional[str] = None
     # Agrega otros campos relevantes si es necesario
-    # Ejemplo:
-    # nombre: Optional[str] = None
-    # fecha_defuncion: Optional[str] = None
 
 class RegistraduriaScraper:
     URL = 'https://defunciones.registraduria.gov.co/'
@@ -54,6 +51,7 @@ class RegistraduriaScraper:
         options = webdriver.ChromeOptions()
         if headless:
             options.add_argument('--headless=new')
+        options.binary_location = '/usr/bin/google-chrome'  # Ruta al binario de Chrome en Render
         options.add_argument('--window-size=1920,1080')
         options.add_argument('--disable-gpu')
         options.add_argument('--no-sandbox')
@@ -63,7 +61,6 @@ class RegistraduriaScraper:
         options.add_argument('--disable-webgl')
         options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
         options.add_experimental_option('useAutomationExtension', False)
-        # Opcional: Establecer un User-Agent real
         options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                              'AppleWebKit/537.36 (KHTML, like Gecko) '
                              'Chrome/98.0.4758.102 Safari/537.36')
@@ -116,7 +113,6 @@ class RegistraduriaScraper:
 
                 # Extraer y procesar los datos necesarios
                 try:
-                    # Esperar a que los resultados se carguen
                     resultados_xpath = '//*[@id="content"]/div[2]/div/div/div/div'
                     resultado_element = wait.until(
                         EC.visibility_of_element_located((By.XPATH, resultados_xpath))
@@ -126,7 +122,6 @@ class RegistraduriaScraper:
                     # Extraer Fecha Consulta
                     try:
                         fecha_consulta = resultado_element.find_element(By.XPATH, './/h5[@class="card-title"]').text
-                        # Extraer solo la fecha
                         fecha_consulta = fecha_consulta.replace('Fecha Consulta: ', '').strip()
                         self.logger.info(f"Fecha Consulta: {fecha_consulta}")
                     except NoSuchElementException:
@@ -149,7 +144,6 @@ class RegistraduriaScraper:
                         self.logger.error("Elemento Estado no encontrado.")
                         estado = None
 
-                    # Crear instancia de RegistraduriaData con los datos extraídos
                     data = RegistraduriaData(
                         nuip=nuip,
                         fecha_consulta=fecha_consulta,
