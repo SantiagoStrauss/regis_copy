@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from contextlib import contextmanager
 import traceback
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+
 
 ####funciona WORKERS
 # Constants for Chrome setup
