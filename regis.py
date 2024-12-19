@@ -124,7 +124,7 @@ class RegistraduriaScraper:
                 driver.get(self.URL)
                 self.logger.info(f"Navigating to {self.URL}")
                 
-                wait = WebDriverWait(driver, 30)
+                wait = WebDriverWait(driver, 10)
                 
                 # Input NUIP
                 try:
